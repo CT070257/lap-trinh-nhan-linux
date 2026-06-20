@@ -22,6 +22,14 @@ public class NhanLinuxApp {
 
     static JTextArea outputArea;
 
+    // ── Điều hướng giữa giao diện chung và các giao diện riêng ──
+    static CardLayout cardLayout;
+    static JPanel cardPanel;
+    static final String CARD_HOME   = "home";
+    static final String CARD_SHELL  = "shell";
+    static final String CARD_C      = "c";
+    static final String CARD_MODULE = "module";
+
     public static void main(String[] args) {
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame("Lập trình nhân Linux – Đề tài 23");
@@ -50,13 +58,15 @@ public class NhanLinuxApp {
             header.add(headerText, BorderLayout.CENTER);
             frame.add(header, BorderLayout.NORTH);
 
-            JTabbedPane tabs = new JTabbedPane();
-            tabs.setFont(FONT_LABEL);
-            tabs.setBackground(BG);
-            tabs.addTab("🖥  Shell", buildShellTab());
-            tabs.addTab("⚙  C Program", buildCTab());
-            tabs.addTab("🔧  Kernel Module", buildModuleTab());
-            tabs.setBorder(new EmptyBorder(8, 8, 0, 8));
+            cardLayout = new CardLayout();
+            cardPanel = new JPanel(cardLayout);
+            cardPanel.setBackground(BG);
+            cardPanel.setBorder(new EmptyBorder(8, 8, 0, 8));
+
+            cardPanel.add(buildHomeScreen(), CARD_HOME);
+            cardPanel.add(wrapWithBackBar("🖥  Shell", buildShellTab()), CARD_SHELL);
+            cardPanel.add(wrapWithBackBar("⚙  C Program", buildCTab()), CARD_C);
+            cardPanel.add(wrapWithBackBar("🔧  Kernel Module", buildModuleTab()), CARD_MODULE);
 
             JPanel outputPanel = new JPanel(new BorderLayout());
             outputPanel.setBorder(new CompoundBorder(
@@ -93,15 +103,136 @@ public class NhanLinuxApp {
             outputPanel.add(outputHeader, BorderLayout.NORTH);
             outputPanel.add(outputScroll, BorderLayout.CENTER);
 
-            JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, tabs, outputPanel);
+            JSplitPane split = new JSplitPane(JSplitPane.VERTICAL_SPLIT, cardPanel, outputPanel);
             split.setDividerLocation(340);
             split.setDividerSize(4);
             split.setBorder(null);
             frame.add(split, BorderLayout.CENTER);
 
             frame.setVisible(true);
-            appendOutput("✅ Ứng dụng đã khởi động. Chọn tab và nhấn nút để chạy lệnh.\n");
+            cardLayout.show(cardPanel, CARD_HOME);
+            appendOutput("✅ Ứng dụng đã khởi động. Chọn một mô-đun để mở giao diện riêng.\n");
         });
+    }
+
+    // ════════════════════════════════════════════════
+    //  TRANG CHỦ – chọn 1 trong 3 giao diện riêng biệt
+    // ════════════════════════════════════════════════
+    static JPanel buildHomeScreen() {
+        JPanel panel = new JPanel(new BorderLayout(0, 12));
+        panel.setBackground(BG);
+        panel.setBorder(new EmptyBorder(16, 16, 16, 16));
+
+        JLabel desc = new JLabel("Chọn một mô-đun bên dưới để mở giao diện riêng biệt");
+        desc.setFont(FONT_NORMAL);
+        desc.setForeground(TEXT_GRAY);
+        panel.add(desc, BorderLayout.NORTH);
+
+        JPanel list = new JPanel(new GridLayout(3, 1, 12, 12));
+        list.setOpaque(false);
+
+        list.add(makeNavCard("🖥  Shell Script",
+            "Quản lý file, lập lịch tác vụ (crontab), thiết lập thời gian hệ thống,\n"
+            + "cài đặt / gỡ bỏ chương trình tự động",
+            ACCENT, () -> showScreen(CARD_SHELL)));
+
+        list.add(makeNavCard("⚙  C Program",
+            "Quản lý tiến trình, file, socket và network\n"
+            + "trong Ubuntu bằng ngôn ngữ C",
+            new Color(79, 70, 229), () -> showScreen(CARD_C)));
+
+        list.add(makeNavCard("🔧  Kernel Module",
+            "Xây dựng 1 mô-đun nhân (kernel module) sắp xếp mảng\n"
+            + "và tích hợp vào hệ thống",
+            new Color(217, 119, 6), () -> showScreen(CARD_MODULE)));
+
+        panel.add(list, BorderLayout.CENTER);
+        return panel;
+    }
+
+    // Thẻ điều hướng trên Trang chủ – click vào thẻ hoặc nút để chuyển màn hình
+    static JPanel makeNavCard(String title, String desc, Color color, Runnable action) {
+        JPanel card = new JPanel(new BorderLayout(16, 0));
+        card.setBackground(WHITE);
+        card.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        card.setBorder(new CompoundBorder(
+            new LineBorder(BORDER, 1, true),
+            new EmptyBorder(18, 20, 18, 20)
+        ));
+
+        JPanel stripe = new JPanel();
+        stripe.setBackground(color);
+        stripe.setPreferredSize(new Dimension(5, 0));
+        card.add(stripe, BorderLayout.WEST);
+
+        JLabel lbTitle = new JLabel(title);
+        lbTitle.setFont(new Font("SansSerif", Font.BOLD, 15));
+        lbTitle.setForeground(TEXT);
+        lbTitle.setBorder(new EmptyBorder(0, 16, 0, 0));
+
+        JLabel lbDesc = new JLabel("<html>" + desc.replace("\n", "<br>") + "</html>");
+        lbDesc.setFont(FONT_NORMAL);
+        lbDesc.setForeground(TEXT_GRAY);
+        lbDesc.setBorder(new EmptyBorder(0, 16, 0, 0));
+
+        JPanel textCol = new JPanel();
+        textCol.setLayout(new BoxLayout(textCol, BoxLayout.Y_AXIS));
+        textCol.setOpaque(false);
+        textCol.add(lbTitle);
+        textCol.add(Box.createVerticalStrut(6));
+        textCol.add(lbDesc);
+
+        JButton btn = makeBtn("Mở giao diện  →", color);
+        btn.addActionListener(e -> action.run());
+        JPanel btnWrap = new JPanel(new GridBagLayout());
+        btnWrap.setOpaque(false);
+        btnWrap.add(btn);
+
+        card.add(textCol, BorderLayout.CENTER);
+        card.add(btnWrap, BorderLayout.EAST);
+
+        card.addMouseListener(new MouseAdapter() {
+            @Override public void mouseClicked(MouseEvent e) { action.run(); }
+        });
+
+        return card;
+    }
+
+    // Thanh "Quay lại Trang chủ" gắn phía trên mỗi giao diện riêng biệt,
+    // dùng đúng phong cách của thanh Output (nền xám nhạt, nút phẳng)
+    static JPanel wrapWithBackBar(String screenTitle, JPanel content) {
+        JPanel wrapper = new JPanel(new BorderLayout(0, 12));
+        wrapper.setOpaque(false);
+
+        JPanel bar = new JPanel(new BorderLayout());
+        bar.setBackground(new Color(235, 235, 235));
+        bar.setBorder(new CompoundBorder(
+            new LineBorder(BORDER, 1, true),
+            new EmptyBorder(8, 12, 8, 12)
+        ));
+
+        JButton btnBack = new JButton("←  Trang chủ");
+        btnBack.setFont(FONT_LABEL);
+        btnBack.setForeground(ACCENT);
+        btnBack.setBorderPainted(false);
+        btnBack.setContentAreaFilled(false);
+        btnBack.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        btnBack.addActionListener(e -> showScreen(CARD_HOME));
+
+        JLabel lbScreen = new JLabel(screenTitle);
+        lbScreen.setFont(FONT_LABEL);
+        lbScreen.setForeground(TEXT_GRAY);
+
+        bar.add(btnBack, BorderLayout.WEST);
+        bar.add(lbScreen, BorderLayout.EAST);
+
+        wrapper.add(bar, BorderLayout.NORTH);
+        wrapper.add(content, BorderLayout.CENTER);
+        return wrapper;
+    }
+
+    static void showScreen(String cardName) {
+        cardLayout.show(cardPanel, cardName);
     }
 
     // ════════════════════════════════════════════════
