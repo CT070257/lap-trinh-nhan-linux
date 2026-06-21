@@ -1,11 +1,12 @@
 #!/bin/sh
+
 createCronJob() {
   clear
   echo "--- Lập lịch tác vụ - Tạo tác vụ ---"
   read -p "Nhập đường dẫn tới file shell: " filePath
   if [ -f "$filePath" ]; then
     read -r -p "Nhập cron expression: " cronJobExpression
-    chmod +x $filePath
+    chmod +x "$filePath"
     crontab -l | { cat; echo "$cronJobExpression $filePath"; } | crontab -
     if [ $? -eq 0 ]; then
        echo "Tạo tác vụ '$filePath' thành công."
@@ -25,8 +26,26 @@ listCronJobs() {
   showMenu
 }
 
+deleteCronJob() {
+  clear
+  echo "--- Lập lịch tác vụ - Xoá tác vụ ---"
+  echo "Danh sách các tác vụ hiện tại:"
+  crontab -l
+  echo "------------------------------------"
+  read -p "Nhập đường dẫn file shell của tác vụ cần xoá: " filePath
+  
+  # Kiểm tra xem có crontab nào chứa đường dẫn này không
+  if crontab -l | grep -q "$filePath"; then
+    # Đọc crontab, lọc bỏ (-v) dòng chứa filePath, rồi ghi đè lại vào crontab
+    crontab -l | grep -v "$filePath" | crontab -
+    echo "✅ Đã xoá tác vụ chứa '$filePath'."
+  else
+    echo "❌ Không tìm thấy tác vụ nào chứa '$filePath'."
+  fi
+  showMenu
+}
+
 showMenu() {
-  echo
   echo
   echo
   echo "--- Lập lịch tác vụ ---"
@@ -41,7 +60,7 @@ showMenu() {
       createCronJob
       ;;
     2)
-      crontab -r
+      deleteCronJob
       ;;
     3)
       listCronJobs
