@@ -310,7 +310,7 @@ public class NhanLinuxApp {
 
         // ── FIX: Mở cả server + 2 client terminal ──
         grid.add(makeCard("💬  Socket Chat",
-            "Khởi động server + 2 client\nchat TCP qua port 8888",
+            "Khởi động server + 2 client\nchat TCP qua port 9999",
             new Color(79, 70, 229), () -> {
                 // Bước 1: Biên dịch cả server và client
                 appendOutput("▶ Đang biên dịch server và client...\n");
@@ -345,11 +345,11 @@ public class NhanLinuxApp {
                         appendOutput("✅ Biên dịch thành công!\n");
 
                         // Bước 2: Mở terminal Server
-                        appendOutput("▶ Mở terminal Server (port 8888)...\n");
+                        appendOutput("▶ Mở terminal Server (port 9999)...\n");
                         Runtime.getRuntime().exec(new String[]{
                             "bash", "-c",
                             "x-terminal-emulator -T 'Socket Server' -e bash -c " +
-                            "'echo === SERVER === && ~/NhanLinux/c/socket/server 8888; " +
+                            "'echo === SERVER === && ~/NhanLinux/c/socket/server 9999; " +
                             "echo; read -p \"Nhấn Enter để đóng...\" ' &"
                         });
 
@@ -361,7 +361,7 @@ public class NhanLinuxApp {
                         Runtime.getRuntime().exec(new String[]{
                             "bash", "-c",
                             "x-terminal-emulator -T 'Socket Client 1' -e bash -c " +
-                            "'echo === CLIENT 1 === && ~/NhanLinux/c/socket/client 127.0.0.1 8888; " +
+                            "'echo === CLIENT 1 === && ~/NhanLinux/c/socket/client 127.0.0.1 9999; " +
                             "echo; read -p \"Nhấn Enter để đóng...\" ' &"
                         });
 
@@ -373,7 +373,7 @@ public class NhanLinuxApp {
                         Runtime.getRuntime().exec(new String[]{
                             "bash", "-c",
                             "x-terminal-emulator -T 'Socket Client 2' -e bash -c " +
-                            "'echo === CLIENT 2 === && ~/NhanLinux/c/socket/client 127.0.0.1 8888; " +
+                            "'echo === CLIENT 2 === && ~/NhanLinux/c/socket/client 127.0.0.1 9999; " +
                             "echo; read -p \"Nhấn Enter để đóng...\" ' &"
                         });
 

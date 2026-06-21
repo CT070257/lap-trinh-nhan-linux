@@ -10,11 +10,19 @@ updateDateTimeManual() {
   echo "--- Thiết lập thời gian hệ thống ---"
   echo "Thời gian hiện tại: $(date +%Y-%m-%d\ %H:%M:%S)"
   read -p "Nhập thời gian mới (định dạng YYYY-MM-DD HH:mm:ss, vd: 2024-03-16 09:18:01): " newDateTime
+
+  # 1. Tắt tính năng tự động đồng bộ thời gian (NTP)
+  sudo timedatectl set-ntp false
+
+  # 2. Thực hiện thiết lập thời gian mới
   sudo timedatectl set-time "$newDateTime"
+  
   if [ $? -eq 0 ]; then
-    echo "Thời gian đã được cập nhật: $(date +%Y-%m-%d\ %H:%M:%S)"
+    echo "✅ Thời gian đã được cập nhật: $(date +%Y-%m-%d\ %H:%M:%S)"
   else
-    echo "Cập nhật thời gian thất bại."
+    echo "❌ Cập nhật thời gian thất bại. Có thể do sai định dạng."
+    # Bật lại ntp để tránh lỗi hệ thống nếu người dùng nhập sai
+    sudo timedatectl set-ntp true
   fi
   showMenu
 }
